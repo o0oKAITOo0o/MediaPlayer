@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="music_select">#FF528886</color>
     <color name="music_noselect">#AAFAF7</color>
+    <color name="status_bar_color">#9C27B0</color>
 </resources>

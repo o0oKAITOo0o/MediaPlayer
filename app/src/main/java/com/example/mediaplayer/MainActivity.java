@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -45,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView2 = findViewById(R.id.recyclerView2);
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.status_bar_color));
+        }
         if (checkPermissions()) {
             fileMp3 = loadFiles(); // Cập nhật danh sách file MP3
             FileAdapter fileAdapter = new FileAdapter(fileMp3);
@@ -66,27 +70,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void event() {
         btnMusic.setOnClickListener(view -> {
-            recyclerView2.setVisibility(view.GONE);
-            recyclerView.setVisibility(view.INVISIBLE);
+            recyclerView2.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE); // Hiển thị danh sách âm nhạc
             btnVideo.setTextColor(getResources().getColor(R.color.black));
             btnVideo.setBackgroundResource(R.drawable.bg_tab);
             btnMusic.setTextColor(getResources().getColor(R.color.white));
             btnMusic.setBackgroundResource(R.drawable.bg_yes);
-
-
         });
+
         btnVideo.setOnClickListener(view -> {
-            recyclerView2.setVisibility(view.INVISIBLE);
-            recyclerView.setVisibility(view.GONE);
+            recyclerView.setVisibility(View.GONE);
+            recyclerView2.setVisibility(View.VISIBLE); // Hiển thị danh sách video
             btnMusic.setTextColor(getResources().getColor(R.color.black));
             btnMusic.setBackgroundResource(R.drawable.bg_tab);
             btnVideo.setTextColor(getResources().getColor(R.color.white));
             btnVideo.setBackgroundResource(R.drawable.bg_yes);
-
-
-
         });
     }
+
 
     private void link() {
         btnMusic = findViewById(R.id.btn_music);
