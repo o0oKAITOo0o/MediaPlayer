@@ -1,7 +1,5 @@
 package com.example.mediaplayer;
 
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -9,93 +7,102 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.EditText;
 import android.widget.TextView;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView btnMusic,btnVideo;
     private static final int REQUEST_PERMISSION = 1;
-    private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
+    private final String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
 
-    private     RecyclerView recyclerView,recyclerView2;
+    private RecyclerView recyclerView, recyclerView2;
     private ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
-    private ArrayList<VideoItem> videoItems = new ArrayList<>();
-
+    private ArrayList<VideoItem> videoItems = new ArrayList();
+    private boolean isMusicSelected = true;
+    TextView btnVideo,btnMusic;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        recyclerView = findViewById(R.id.recyclerView);
+
+        link();
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView2 = findViewById(R.id.recyclerView2);
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.status_bar_color));
         }
+
+
         if (checkPermissions()) {
-            fileMp3 = loadFiles(); // Cập nhật danh sách file MP3
-            FileAdapter fileAdapter = new FileAdapter(fileMp3);
-            recyclerView.setAdapter(fileAdapter);
-            videoItems = loadFileVideo();
-            VideoAdapter videoAdapter = new VideoAdapter(this,videoItems);
-            recyclerView2.setAdapter(videoAdapter);
+            loadMediaFiles();
         } else {
             requestPermissions();
         }
 
+        btnMusic.setOnClickListener(view -> selectMedia(true));
+        btnVideo.setOnClickListener(view -> selectMedia(false));
 
-        link();
-        event();
+        EditText searchQueryEditText = findViewById(R.id.ed_Search);
+        searchQueryEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                searchFiles(charSequence.toString());
+            }
 
-    }
-
-
-    private void event() {
-        btnMusic.setOnClickListener(view -> {
-            recyclerView2.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE); // Hiển thị danh sách âm nhạc
-            btnVideo.setTextColor(getResources().getColor(R.color.black));
-            btnVideo.setBackgroundResource(R.drawable.bg_tab);
-            btnMusic.setTextColor(getResources().getColor(R.color.white));
-            btnMusic.setBackgroundResource(R.drawable.bg_yes);
-        });
-
-        btnVideo.setOnClickListener(view -> {
-            recyclerView.setVisibility(View.GONE);
-            recyclerView2.setVisibility(View.VISIBLE); // Hiển thị danh sách video
-            btnMusic.setTextColor(getResources().getColor(R.color.black));
-            btnMusic.setBackgroundResource(R.drawable.bg_tab);
-            btnVideo.setTextColor(getResources().getColor(R.color.white));
-            btnVideo.setBackgroundResource(R.drawable.bg_yes);
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
         });
     }
-
 
     private void link() {
         btnMusic = findViewById(R.id.btn_music);
         btnVideo = findViewById(R.id.btn_video);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView2 = findViewById(R.id.recyclerView2);
 
     }
 
-    //Cấp quyền
+    private void selectMedia(boolean isMusic) {
+        isMusicSelected = isMusic;
+        loadUITabbar(isMusicSelected);
+        recyclerView.setVisibility(isMusic ? View.VISIBLE : View.GONE);
+        recyclerView2.setVisibility(isMusic ? View.GONE : View.VISIBLE);
+        loadMediaFiles();
+    }
+    private void loadUITabbar(boolean isMusic){
+
+        if(isMusic){
+            btnVideo.setTextColor(getResources().getColor(R.color.black));
+            btnVideo.setBackgroundResource(R.drawable.bg_tab);
+            btnMusic.setTextColor(getResources().getColor(R.color.white));
+            btnMusic.setBackgroundResource(R.drawable.bg_yes);
+        }else{
+            btnMusic.setTextColor(getResources().getColor(R.color.black));
+            btnMusic.setBackgroundResource(R.drawable.bg_tab);
+            btnVideo.setTextColor(getResources().getColor(R.color.white));
+            btnVideo.setBackgroundResource(R.drawable.bg_yes);
+        }
+    }
 
     private boolean checkPermissions() {
         for (String permission : permissions) {
@@ -105,13 +112,25 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION);
     }
 
-    //loadfileMP3
-    private ArrayList<FileItemMP3> loadFiles() {
-        ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
+    private void loadMediaFiles() {
+        if (isMusicSelected) {
+            fileMp3 = loadAudioFiles();
+            FileAdapter fileAdapter = new FileAdapter(fileMp3);
+            recyclerView.setAdapter(fileAdapter);
+        } else {
+            videoItems = loadVideoFiles();
+            VideoAdapter videoAdapter = new VideoAdapter(this, videoItems);
+            recyclerView2.setAdapter(videoAdapter);
+        }
+    }
+
+    private ArrayList<FileItemMP3> loadAudioFiles() {
+        ArrayList<FileItemMP3> audioFiles = new ArrayList<>();
 
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {MediaStore.Audio.AudioColumns.DATA};
@@ -125,26 +144,25 @@ public class MainActivity extends AppCompatActivity {
                 while (cursor.moveToNext()) {
                     String filePath = cursor.getString(0);
                     String fileName = getFileNameFromPath(filePath);
-                    fileMp3.add(new FileItemMP3(fileName, filePath));
-//                    Log.d("FileLoading", "Loaded file: " + filePath);
+                    audioFiles.add(new FileItemMP3(fileName, filePath));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // Xử lý lỗi ở đây nếu cần
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
         }
 
-        return fileMp3;
+        return audioFiles;
     }
-    private ArrayList<VideoItem> loadFileVideo() {
-        ArrayList<VideoItem> videoFileList = new ArrayList<>();
+
+    private ArrayList<VideoItem> loadVideoFiles() {
+        ArrayList<VideoItem> videoFiles = new ArrayList<>();
 
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {MediaStore.Audio.AudioColumns.DATA};
+        String[] projection = {MediaStore.Video.VideoColumns.DATA};
 
         Cursor cursor = null;
 
@@ -155,20 +173,18 @@ public class MainActivity extends AppCompatActivity {
                 while (cursor.moveToNext()) {
                     String filePath = cursor.getString(0);
                     String fileName = getFileNameFromPath(filePath);
-                    videoFileList.add(new VideoItem(filePath,fileName));
-                    Log.d("FileLoading", "Loaded file: " + filePath);
+                    videoFiles.add(new VideoItem(filePath, fileName));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // Xử lý lỗi ở đây nếu cần
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
         }
 
-        return videoFileList;
+        return videoFiles;
     }
 
     private String getFileNameFromPath(String filePath) {
@@ -176,29 +192,29 @@ public class MainActivity extends AppCompatActivity {
         return file.getName();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                fileMp3 = loadFiles(); // Cập nhật danh sách file MP3
-                FileAdapter fileAdapter = new FileAdapter(fileMp3);
-                recyclerView.setAdapter(fileAdapter);
+    private void searchFiles(String searchQuery) {
+        searchQuery = searchQuery.toLowerCase();
 
-                videoItems = loadFileVideo();
-                VideoAdapter videoAdapter = new VideoAdapter(this,videoItems);
-                recyclerView2.setAdapter(videoAdapter);
+        if (isMusicSelected) {
+            ArrayList<FileItemMP3> searchResults = new ArrayList<>();
+            for (FileItemMP3 file : fileMp3) {
+                String fileName = file.getDISPLAY_NAME().toLowerCase();
+                if (fileName.contains(searchQuery)) {
+                    searchResults.add(file);
+                }
             }
+            FileAdapter searchResultAdapter = new FileAdapter(searchResults);
+            recyclerView.setAdapter(searchResultAdapter);
+        } else {
+            ArrayList<VideoItem> searchResults = new ArrayList<>();
+            for (VideoItem file : videoItems) {
+                String fileName = file.getNameVideo().toLowerCase();
+                if (fileName.contains(searchQuery)) {
+                    searchResults.add(file);
+                }
+            }
+            VideoAdapter searchResultAdapter = new VideoAdapter(this, searchResults);
+            recyclerView2.setAdapter(searchResultAdapter);
         }
     }
-
-    private Bitmap getVideoThumbnail(String videoPath) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(videoPath);
-        return retriever.getFrameAtTime();
-    }
-
-
-
-
 }

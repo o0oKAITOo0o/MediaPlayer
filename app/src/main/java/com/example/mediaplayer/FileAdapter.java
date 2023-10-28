@@ -1,5 +1,7 @@
 package com.example.mediaplayer;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,7 @@ import java.util.Date;
 
 public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder> {
     private ArrayList<FileItemMP3> fileMp3List;
+    Intent intent;
 
     public FileAdapter(ArrayList<FileItemMP3> fileMp3List) {
         this.fileMp3List = fileMp3List;
@@ -51,5 +54,11 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
             fileNameTextView = itemView.findViewById(R.id.mp3name);
             dateTv = itemView.findViewById(R.id.tv_date);
         }
+    }
+    public void play(Context context, int position){
+        intent = new Intent(context, PlayMusic.class);
+        intent.putExtra("file", position);
+        intent.putExtra("list", fileMp3List);
+        context.startActivity(intent);
     }
 }

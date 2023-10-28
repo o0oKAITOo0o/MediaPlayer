@@ -30,8 +30,10 @@
             android:textStyle="bold" />
 
         <EditText
+            android:id="@+id/ed_Search"
             android:hint="Tìm kiếm"
             android:textColorHint="#A19C9C"
+            android:textSize="18dp"
             android:background="@drawable/bg_search"
             android:padding="6dp"
             android:layout_width="match_parent"
