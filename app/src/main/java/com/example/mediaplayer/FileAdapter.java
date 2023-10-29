@@ -1,5 +1,7 @@
 package com.example.mediaplayer;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,10 +10,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder> {
     private ArrayList<FileItemMP3> fileMp3List;
+    Intent intent;
 
     public FileAdapter(ArrayList<FileItemMP3> fileMp3List) {
         this.fileMp3List = fileMp3List;
@@ -27,6 +33,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     @Override
     public void onBindViewHolder(@NonNull FileViewHolder holder, int position) {
         holder.fileNameTextView.setText(fileMp3List.get(position).getDISPLAY_NAME());
+        long creationTime = new File(fileMp3List.get(position).getDATA()).lastModified(); // This is in milliseconds since epoch
+
+        // Format the creation date and time
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String formattedDate = dateFormat.format(new Date(creationTime));
+        holder.dateTv.setText(formattedDate);
     }
 
     @Override
@@ -35,12 +47,18 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     }
 
     public static class FileViewHolder extends RecyclerView.ViewHolder {
-        TextView fileNameTextView;
+        TextView fileNameTextView,dateTv;
 
         public FileViewHolder(View itemView) {
             super(itemView);
             fileNameTextView = itemView.findViewById(R.id.mp3name);
-
+            dateTv = itemView.findViewById(R.id.tv_date);
         }
+    }
+    public void play(Context context, int position){
+        intent = new Intent(context, PlayMusic.class);
+        intent.putExtra("file", position);
+        intent.putExtra("list", fileMp3List);
+        context.startActivity(intent);
     }
 }

@@ -10,6 +10,8 @@
 
     <LinearLayout
         android:id="@+id/linearLayout"
+        android:background="@color/status_bar_color"
+        android:paddingBottom="18dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -19,15 +21,21 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="69dp"
             android:gravity="center"
             android:padding="8dp"
             android:text="MediaPlayer"
-            android:textSize="20dp" />
+            android:textColor="#000"
+            android:textSize="32dp"
+            android:textStyle="bold" />
 
         <EditText
+            android:id="@+id/ed_Search"
             android:hint="Tìm kiếm"
             android:textColorHint="#A19C9C"
+            android:textSize="18dp"
+            android:background="@drawable/bg_search"
+            android:padding="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp" />
@@ -37,7 +45,6 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
 
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintEnd_toEndOf="parent"
@@ -50,6 +57,7 @@
         android:id="@+id/recyclerView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
