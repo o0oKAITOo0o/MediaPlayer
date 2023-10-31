@@ -15,6 +15,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         link();
+        linkViews();
+        setupUI();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
@@ -72,6 +75,22 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
             }
         });
+
+
+        // Start a thread to update the SeekBar's progress as the media plays
+    }
+
+    private void setupUI() {
+        btnMusic.setOnClickListener(view -> selectMedia(true));
+        btnVideo.setOnClickListener(view -> selectMedia(false));
+
+    }
+
+    private void linkViews() {
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView2 = findViewById(R.id.recyclerView2);
+        btnMusic = findViewById(R.id.btn_music);
+        btnVideo = findViewById(R.id.btn_video);
     }
 
     private void link() {
@@ -84,12 +103,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectMedia(boolean isMusic) {
         isMusicSelected = isMusic;
-        loadUITabbar(isMusicSelected);
+        loadUITabBar(isMusicSelected);
         recyclerView.setVisibility(isMusic ? View.VISIBLE : View.GONE);
         recyclerView2.setVisibility(isMusic ? View.GONE : View.VISIBLE);
         loadMediaFiles();
     }
-    private void loadUITabbar(boolean isMusic){
+    private void loadUITabBar(boolean isMusic){
 
         if(isMusic){
             btnVideo.setTextColor(getResources().getColor(R.color.black));
@@ -120,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadMediaFiles() {
         if (isMusicSelected) {
             fileMp3 = loadAudioFiles();
-            FileAdapter fileAdapter = new FileAdapter(this,fileMp3);
+            FileAdapter fileAdapter = new FileAdapter(this, fileMp3);
             recyclerView.setAdapter(fileAdapter);
         } else {
             videoItems = loadVideoFiles();
@@ -228,4 +247,5 @@ public class MainActivity extends AppCompatActivity {
             recyclerView2.setAdapter(searchResultAdapter);
         }
     }
+
 }
