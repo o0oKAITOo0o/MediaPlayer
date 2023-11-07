@@ -2,24 +2,24 @@ package com.example.mediaplayer;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder> {
+    private Context context;
     private ArrayList<FileItemMP3> fileMp3List;
-    Intent intent;
 
-    public FileAdapter(ArrayList<FileItemMP3> fileMp3List) {
+    public FileAdapter(Context context, ArrayList<FileItemMP3> fileMp3List) {
+        this.context = context;
         this.fileMp3List = fileMp3List;
     }
 
@@ -32,13 +32,20 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull FileViewHolder holder, int position) {
-        holder.fileNameTextView.setText(fileMp3List.get(position).getDISPLAY_NAME());
-        long creationTime = new File(fileMp3List.get(position).getDATA()).lastModified(); // This is in milliseconds since epoch
+        FileItemMP3 file = fileMp3List.get(position);
 
-        // Format the creation date and time
+        holder.fileNameTextView.setText(file.getDISPLAY_NAME());
+
+        long creationTime = new File(file.getDATA()).lastModified();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String formattedDate = dateFormat.format(new Date(creationTime));
         holder.dateTv.setText(formattedDate);
+
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, PlayMusic.class);
+            intent.putExtra("position", position); // Pass the file path as a unique identifier
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -47,18 +54,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
     }
 
     public static class FileViewHolder extends RecyclerView.ViewHolder {
-        TextView fileNameTextView,dateTv;
+        TextView fileNameTextView, dateTv;
 
         public FileViewHolder(View itemView) {
             super(itemView);
             fileNameTextView = itemView.findViewById(R.id.mp3name);
             dateTv = itemView.findViewById(R.id.tv_date);
         }
-    }
-    public void play(Context context, int position){
-        intent = new Intent(context, PlayMusic.class);
-        intent.putExtra("file", position);
-        intent.putExtra("list", fileMp3List);
-        context.startActivity(intent);
     }
 }
