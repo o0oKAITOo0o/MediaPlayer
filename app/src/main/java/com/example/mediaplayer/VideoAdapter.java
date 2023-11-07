@@ -1,6 +1,7 @@
 package com.example.mediaplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.view.LayoutInflater;
@@ -38,33 +39,12 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
     @Override
     public void onBindViewHolder(VideoViewHolder holder, int position) {
 
-//        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoItems.get(position).getVideoPath());
-//        try {
-//            grabber.start();
-//
-//            // Chọn khung hình cụ thể (ví dụ: lấy khung hình ở giây thứ 10)
-//            int targetSecond = 10;
-//            int targetFrameIndex = (int) (targetSecond * grabber.getFrameRate());
-//            grabber.setFrameNumber(targetFrameIndex);
-//
-//            Frame frame = grabber.grab();
-//
-//            if (frame != null) {
-//                // Chuyển đổi Frame thành Bitmap
-//                Bitmap bitmap = frameToBitmap(frame);
-//
-//                // Sử dụng Glide để hiển thị ảnh
-//                Glide.with(context)
-//                        .load(bitmap)
-//                        .apply(new RequestOptions().centerCrop())
-//                        .into(holder.imagevideo);
-//            }
-//
-//            grabber.stop();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
         holder.tv_Name.setText(videoItems.get(position).getNameVideo());
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, PlayVideo.class);
+            intent.putExtra("position1", position);
+            context.startActivity(intent);
+        });
     }
 
     @Override

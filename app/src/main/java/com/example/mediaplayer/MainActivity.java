@@ -15,7 +15,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private final String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
 
     private RecyclerView recyclerView, recyclerView2;
-    public static ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
+    private ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
     private ArrayList<VideoItem> videoItems = new ArrayList();
     private boolean isMusicSelected = true;
     TextView btnVideo,btnMusic;
@@ -40,8 +39,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         link();
-        linkViews();
-        setupUI();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
@@ -75,22 +72,6 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
             }
         });
-
-
-        // Start a thread to update the SeekBar's progress as the media plays
-    }
-
-    private void setupUI() {
-        btnMusic.setOnClickListener(view -> selectMedia(true));
-        btnVideo.setOnClickListener(view -> selectMedia(false));
-
-    }
-
-    private void linkViews() {
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView2 = findViewById(R.id.recyclerView2);
-        btnMusic = findViewById(R.id.btn_music);
-        btnVideo = findViewById(R.id.btn_video);
     }
 
     private void link() {
@@ -103,12 +84,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectMedia(boolean isMusic) {
         isMusicSelected = isMusic;
-        loadUITabBar(isMusicSelected);
+        loadUITabbar(isMusicSelected);
         recyclerView.setVisibility(isMusic ? View.VISIBLE : View.GONE);
         recyclerView2.setVisibility(isMusic ? View.GONE : View.VISIBLE);
         loadMediaFiles();
     }
-    private void loadUITabBar(boolean isMusic){
+    private void loadUITabbar(boolean isMusic){
 
         if(isMusic){
             btnVideo.setTextColor(getResources().getColor(R.color.black));
@@ -139,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadMediaFiles() {
         if (isMusicSelected) {
             fileMp3 = loadAudioFiles();
-            FileAdapter fileAdapter = new FileAdapter(this, fileMp3);
+            FileAdapter fileAdapter = new FileAdapter(fileMp3);
             recyclerView.setAdapter(fileAdapter);
         } else {
             videoItems = loadVideoFiles();
@@ -163,9 +144,7 @@ public class MainActivity extends AppCompatActivity {
                 while (cursor.moveToNext()) {
                     String filePath = cursor.getString(0);
                     String fileName = getFileNameFromPath(filePath);
-                    if (isMP3File(fileName)) {
-                        audioFiles.add(new FileItemMP3(fileName, filePath));
-                    }
+                    audioFiles.add(new FileItemMP3(fileName, filePath));
                 }
             }
         } catch (Exception e) {
@@ -177,19 +156,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return audioFiles;
-    }
-
-    private boolean isMP3File(String fileName) {
-        // Check if the file has a ".mp3" extension
-        return fileName.toLowerCase().contains("mp3");
-    }
-
-    private String getFileNameFromPath(String filePath) {
-        // Implement your logic to extract the file name from the path
-        // This may involve splitting the path or using other methods
-        // For example, you can use File class:
-        File file = new File(filePath);
-        return file.getName();
     }
 
     private ArrayList<VideoItem> loadVideoFiles() {
@@ -221,6 +187,10 @@ public class MainActivity extends AppCompatActivity {
         return videoFiles;
     }
 
+    private String getFileNameFromPath(String filePath) {
+        File file = new File(filePath);
+        return file.getName();
+    }
 
     private void searchFiles(String searchQuery) {
         searchQuery = searchQuery.toLowerCase();
@@ -233,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                     searchResults.add(file);
                 }
             }
-            FileAdapter searchResultAdapter = new FileAdapter(this,searchResults);
+            FileAdapter searchResultAdapter = new FileAdapter(searchResults);
             recyclerView.setAdapter(searchResultAdapter);
         } else {
             ArrayList<VideoItem> searchResults = new ArrayList<>();
@@ -247,5 +217,4 @@ public class MainActivity extends AppCompatActivity {
             recyclerView2.setAdapter(searchResultAdapter);
         }
     }
-
 }
