@@ -24,6 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.example.mediaplayer.PlayMusic" />
+        <activity android:name="com.example.mediaplayer.PlayVideo" />
     </application>
 
 </manifest>

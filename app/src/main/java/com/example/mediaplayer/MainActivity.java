@@ -16,10 +16,8 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -29,16 +27,16 @@ public class MainActivity extends AppCompatActivity {
     private final String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
 
     private RecyclerView recyclerView, recyclerView2;
-    private ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
-    private ArrayList<VideoItem> videoItems = new ArrayList();
+    public static  ArrayList<FileItemMP3> fileMp3 = new ArrayList<>();
+    public static  ArrayList<VideoItem> videoItems = new ArrayList<>();
     private boolean isMusicSelected = true;
-    TextView btnVideo,btnMusic;
+    private TextView btnVideo, btnMusic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        link();
+        linkViews();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
@@ -46,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.status_bar_color));
         }
-
 
         if (checkPermissions()) {
             loadMediaFiles();
@@ -74,12 +71,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void link() {
+    private void linkViews() {
         btnMusic = findViewById(R.id.btn_music);
         btnVideo = findViewById(R.id.btn_video);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView2 = findViewById(R.id.recyclerView2);
-
     }
 
     private void selectMedia(boolean isMusic) {
@@ -89,19 +85,20 @@ public class MainActivity extends AppCompatActivity {
         recyclerView2.setVisibility(isMusic ? View.GONE : View.VISIBLE);
         loadMediaFiles();
     }
-    private void loadUITabbar(boolean isMusic){
 
-        if(isMusic){
-            btnVideo.setTextColor(getResources().getColor(R.color.black));
-            btnVideo.setBackgroundResource(R.drawable.bg_tab);
-            btnMusic.setTextColor(getResources().getColor(R.color.white));
-            btnMusic.setBackgroundResource(R.drawable.bg_yes);
-        }else{
-            btnMusic.setTextColor(getResources().getColor(R.color.black));
-            btnMusic.setBackgroundResource(R.drawable.bg_tab);
-            btnVideo.setTextColor(getResources().getColor(R.color.white));
-            btnVideo.setBackgroundResource(R.drawable.bg_yes);
+    private void loadUITabbar(boolean isMusic) {
+        if (isMusic) {
+            setTabStyle(btnMusic, R.color.white, R.drawable.bg_yes);
+            setTabStyle(btnVideo, R.color.black, R.drawable.bg_tab);
+        } else {
+            setTabStyle(btnMusic, R.color.black, R.drawable.bg_tab);
+            setTabStyle(btnVideo, R.color.white, R.drawable.bg_yes);
         }
+    }
+
+    private void setTabStyle(TextView textView, int textColor, int backgroundResource) {
+        textView.setTextColor(getResources().getColor(textColor));
+        textView.setBackgroundResource(backgroundResource);
     }
 
     private boolean checkPermissions() {
@@ -120,55 +117,49 @@ public class MainActivity extends AppCompatActivity {
     private void loadMediaFiles() {
         if (isMusicSelected) {
             fileMp3 = loadAudioFiles();
-            FileAdapter fileAdapter = new FileAdapter(fileMp3);
-            recyclerView.setAdapter(fileAdapter);
+            recyclerView.setAdapter(new FileAdapter(this, fileMp3));
         } else {
             videoItems = loadVideoFiles();
-            VideoAdapter videoAdapter = new VideoAdapter(this, videoItems);
-            recyclerView2.setAdapter(videoAdapter);
+            recyclerView2.setAdapter(new VideoAdapter(this, videoItems));
         }
     }
 
     private ArrayList<FileItemMP3> loadAudioFiles() {
         ArrayList<FileItemMP3> audioFiles = new ArrayList<>();
-
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {MediaStore.Audio.AudioColumns.DATA};
 
-        Cursor cursor = null;
-
-        try {
-            cursor = getContentResolver().query(uri, projection, null, null, null);
-
+        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     String filePath = cursor.getString(0);
                     String fileName = getFileNameFromPath(filePath);
-                    audioFiles.add(new FileItemMP3(fileName, filePath));
+                    if (isMP3File(fileName)) {
+                        audioFiles.add(new FileItemMP3(fileName, filePath));
+                    }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
         }
-
         return audioFiles;
+    }
+
+    private boolean isMP3File(String fileName) {
+        return fileName.toLowerCase().contains("mp3");
+    }
+
+    private String getFileNameFromPath(String filePath) {
+        File file = new File(filePath);
+        return file.getName();
     }
 
     private ArrayList<VideoItem> loadVideoFiles() {
         ArrayList<VideoItem> videoFiles = new ArrayList<>();
-
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {MediaStore.Video.VideoColumns.DATA};
 
-        Cursor cursor = null;
-
-        try {
-            cursor = getContentResolver().query(uri, projection, null, null, null);
-
+        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     String filePath = cursor.getString(0);
@@ -178,23 +169,12 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
         }
-
         return videoFiles;
-    }
-
-    private String getFileNameFromPath(String filePath) {
-        File file = new File(filePath);
-        return file.getName();
     }
 
     private void searchFiles(String searchQuery) {
         searchQuery = searchQuery.toLowerCase();
-
         if (isMusicSelected) {
             ArrayList<FileItemMP3> searchResults = new ArrayList<>();
             for (FileItemMP3 file : fileMp3) {
@@ -203,8 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     searchResults.add(file);
                 }
             }
-            FileAdapter searchResultAdapter = new FileAdapter(searchResults);
-            recyclerView.setAdapter(searchResultAdapter);
+            recyclerView.setAdapter(new FileAdapter(this, searchResults));
         } else {
             ArrayList<VideoItem> searchResults = new ArrayList<>();
             for (VideoItem file : videoItems) {
@@ -213,8 +192,7 @@ public class MainActivity extends AppCompatActivity {
                     searchResults.add(file);
                 }
             }
-            VideoAdapter searchResultAdapter = new VideoAdapter(this, searchResults);
-            recyclerView2.setAdapter(searchResultAdapter);
+            recyclerView2.setAdapter(new VideoAdapter(this, searchResults));
         }
     }
 }
